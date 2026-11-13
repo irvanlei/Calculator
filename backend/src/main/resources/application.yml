@@ -1,0 +1,22 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: calculator-service
+  jackson:
+    generator:
+      write-bigdecimal-as-plain: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: never
+
+app:
+  cors:
+    allowed-origins: http://localhost:5173,http://localhost:3000
