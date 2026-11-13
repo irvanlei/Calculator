@@ -46,20 +46,8 @@ export function CalculatorKeypad({
   }, [injectedValue, onInjectedConsumed, onError]);
 
   const executeBinary = useCallback(
-    async (operator: BinaryOperator, left: number, right: number): Promise<CalculationResponse> => {
-      switch (operator) {
-        case 'add':
-          return calculatorApi.add(left, right);
-        case 'subtract':
-          return calculatorApi.subtract(left, right);
-        case 'multiply':
-          return calculatorApi.multiply(left, right);
-        case 'divide':
-          return calculatorApi.divide(left, right);
-        case 'power':
-          return calculatorApi.power(left, right);
-      }
-    },
+    (operator: BinaryOperator, left: number, right: number): Promise<CalculationResponse> =>
+      calculatorApi[operator](left, right),
     [],
   );
 

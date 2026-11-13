@@ -38,13 +38,7 @@ export function App() {
   return (
     <div className="app-shell">
       <header className="app-header">
-        <div>
-          <p className="app-badge">Spring Boot + React</p>
-          <h1>Precision Calculator</h1>
-        </div>
-        <p className="app-subtitle">
-          Basic &amp; advanced arithmetic powered by a Java 21 REST microservice
-        </p>
+        <h1>Calculator</h1>
       </header>
 
       <main className="app-layout">
@@ -66,7 +60,7 @@ export function App() {
               className={`mode-tab ${mode === 'form' ? 'active' : ''}`}
               onClick={() => handleModeSwitch('form')}
             >
-              Operation Form
+              Manual Input
             </button>
           </div>
 

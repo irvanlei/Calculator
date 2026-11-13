@@ -79,7 +79,7 @@ describe('App', () => {
     expect(screen.getByRole('alert')).toHaveTextContent('Division by zero is not allowed.');
   });
 
-  it('validates invalid inputs and computes percentage of a base in Operation Form mode', async () => {
+  it('validates invalid inputs and computes percentage of a base in Manual Input mode', async () => {
     const user = userEvent.setup();
     vi.spyOn(calculatorApi, 'percentage').mockResolvedValue({
       operation: 'PERCENTAGE',
@@ -91,7 +91,7 @@ describe('App', () => {
 
     render(<App />);
 
-    await user.click(screen.getByRole('tab', { name: 'Operation Form' }));
+    await user.click(screen.getByRole('tab', { name: 'Manual Input' }));
     await user.selectOptions(screen.getByLabelText('Operation'), 'percentage');
 
     await user.type(screen.getByLabelText('Percent (%)'), 'abc');
@@ -122,7 +122,7 @@ describe('App', () => {
 
     render(<App />);
 
-    await user.click(screen.getByRole('tab', { name: 'Operation Form' }));
+    await user.click(screen.getByRole('tab', { name: 'Manual Input' }));
     await user.selectOptions(screen.getByLabelText('Operation'), 'power');
     await user.type(screen.getByLabelText('Base'), '2');
     await user.type(screen.getByLabelText('Exponent'), '5');

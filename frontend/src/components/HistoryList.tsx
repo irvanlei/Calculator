@@ -20,9 +20,7 @@ export function HistoryList({ entries, onSelectResult, onClearHistory }: History
       </div>
 
       {entries.length === 0 ? (
-        <p className="history-empty">
-          No calculations yet. Results from the API will appear here.
-        </p>
+        <p className="history-empty">No calculations yet.</p>
       ) : (
         <ul className="history-list">
           {entries.map((entry) => {

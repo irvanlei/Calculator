@@ -33,7 +33,7 @@ async function postOperation<TPayload extends object>(
     });
   } catch {
     throw new CalculatorApiError(
-      'Unable to reach the calculator service. Please verify the backend is running.',
+      'Could not reach the server. Please make sure the backend is running.',
       0,
       'NETWORK_ERROR',
     );
