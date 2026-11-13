@@ -114,6 +114,22 @@ Then open `http://localhost:8080` in your browser.
 
 ---
 
+## CI/CD Pipeline (GitHub Actions)
+
+Every push and pull request to `main` runs [ci.yml](.github/workflows/ci.yml) on GitHub Actions:
+
+1. **Backend Tests & JaCoCo Coverage**: Runs `./mvnw -B clean verify` on JDK 21 and uploads `backend-jacoco-coverage`.
+2. **Frontend Build & Vitest Coverage**: Runs `npm ci`, `npm run build`, and `npm run test:coverage` on Node.js 22 and uploads `frontend-v8-coverage`.
+3. **Full-Stack Docker Build, Smoke Test & GHCR Publish**: Builds the production `Dockerfile`, starts the container in the runner to verify `/actuator/health`, `/`, and `POST /api/v1/calculator/add`, and publishes the image to `ghcr.io/irvanlei/calculator:latest` on pushes to `main`.
+
+To run the published container image directly:
+
+```bash
+docker run -p 8080:8080 ghcr.io/irvanlei/calculator:latest
+```
+
+---
+
 ## Tests & Coverage Reports
 
 ### Backend (JUnit 5 + MockMvc + JaCoCo)
