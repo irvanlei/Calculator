@@ -53,7 +53,7 @@ async function postOperation<TPayload extends object>(
     throw new CalculatorApiError(message, response.status, errorBody?.code, errorBody?.fieldErrors);
   }
 
-  if (!body || typeof (body as CalculationResponse).result !== 'number') {
+  if (!body || !Number.isFinite((body as CalculationResponse).result)) {
     throw new CalculatorApiError('Received an unexpected response from the calculator service.', 502);
   }
 

@@ -1,6 +1,7 @@
 package com.calculator.controller;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -136,5 +137,23 @@ class CalculatorControllerTest {
                         .content("{\"a\": \"not-a-number\", \"b\": 2}"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value("INVALID_REQUEST_BODY"));
+
+        mockMvc.perform(post("/api/v1/calculator/add")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"a\": 1e10000000, \"b\": 2}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("OPERAND_OUT_OF_RANGE"));
+    }
+
+    @Test
+    @DisplayName("Responses include defensive HTTP security headers")
+    void responsesIncludeSecurityHeaders() throws Exception {
+        mockMvc.perform(post("/api/v1/calculator/add")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"a\": 1, \"b\": 2}"))
+                .andExpect(status().isOk())
+                .andExpect(header().string("X-Content-Type-Options", "nosniff"))
+                .andExpect(header().string("X-Frame-Options", "DENY"))
+                .andExpect(header().string("Referrer-Policy", "no-referrer"));
     }
 }

@@ -166,5 +166,72 @@ describe('App', () => {
     await user.keyboard('3{Enter}');
     expect(calculatorApi.multiply).toHaveBeenCalledWith(-10, 3);
     expect(screen.getByTestId('calculator-display')).toHaveTextContent('-30');
+
+    await user.keyboard('{Escape}');
+    expect(screen.getByTestId('calculator-display')).toHaveTextContent('0');
+  });
+
+  it('computes contextual percentage in keypad and allows dismissing errors', async () => {
+    const user = userEvent.setup();
+    vi.spyOn(calculatorApi, 'percentage').mockResolvedValue({
+      operation: 'PERCENTAGE',
+      inputs: { percent: 15, of: 200 },
+      result: 30,
+      expression: '15% of 200',
+      timestamp: '2026-01-01T00:00:07Z',
+    });
+    vi.spyOn(calculatorApi, 'add').mockResolvedValue({
+      operation: 'ADDITION',
+      inputs: { a: 200, b: 30 },
+      result: 230,
+      expression: '200 + 30',
+      timestamp: '2026-01-01T00:00:08Z',
+    });
+
+    render(<App />);
+
+    await user.keyboard('200+15%');
+    expect(calculatorApi.percentage).toHaveBeenCalledWith(15, 200);
+    await user.keyboard('{Enter}');
+    expect(calculatorApi.add).toHaveBeenCalledWith(200, 30);
+    expect(screen.getByTestId('calculator-display')).toHaveTextContent('230');
+
+    vi.spyOn(calculatorApi, 'sqrt').mockRejectedValue(
+      new CalculatorApiError('Square root of a negative number is not allowed.', 400),
+    );
+    await user.click(screen.getByRole('button', { name: 'Toggle sign' }));
+    await user.click(screen.getByRole('button', { name: 'Square root' }));
+    expect(screen.getByRole('alert')).toHaveTextContent('Square root of a negative number is not allowed.');
+    await user.click(screen.getByRole('button', { name: 'Dismiss error' }));
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  });
+
+  it('supports subtract, divide, sqrt, and backend error display in Manual Input mode', async () => {
+    const user = userEvent.setup();
+    vi.spyOn(calculatorApi, 'subtract').mockResolvedValue({
+      operation: 'SUBTRACTION',
+      inputs: { a: 10, b: 4 },
+      result: 6,
+      expression: '10 - 4',
+      timestamp: '2026-01-01T00:00:09Z',
+    });
+    vi.spyOn(calculatorApi, 'divide').mockRejectedValue(
+      new CalculatorApiError('Division by zero is not allowed.', 400),
+    );
+
+    render(<App />);
+    await user.click(screen.getByRole('tab', { name: 'Manual Input' }));
+
+    await user.selectOptions(screen.getByLabelText('Operation'), 'subtract');
+    await user.type(screen.getByLabelText('First Operand (a)'), '10');
+    await user.type(screen.getByLabelText('Second Operand (b)'), '4');
+    await user.click(screen.getByRole('button', { name: 'Calculate' }));
+    expect(screen.getByTestId('form-result')).toHaveTextContent('6');
+
+    await user.selectOptions(screen.getByLabelText('Operation'), 'divide');
+    await user.clear(screen.getByLabelText('Divisor (b)'));
+    await user.type(screen.getByLabelText('Divisor (b)'), '0');
+    await user.click(screen.getByRole('button', { name: 'Calculate' }));
+    expect(screen.getByRole('alert')).toHaveTextContent('Division by zero is not allowed.');
   });
 });

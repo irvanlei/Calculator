@@ -17,6 +17,7 @@ public class CalculatorService {
     private static final MathContext MATH_CONTEXT = new MathContext(16, RoundingMode.HALF_UP);
     private static final BigDecimal ONE_HUNDRED = BigDecimal.valueOf(100);
     private static final BigDecimal MAX_ABS_EXPONENT = BigDecimal.valueOf(10_000);
+    private static final int MAX_SCALE_OR_MAGNITUDE = 1_000;
 
     public CalculationResponse add(BigDecimal a, BigDecimal b) {
         requireOperands(a, b);
@@ -49,6 +50,8 @@ public class CalculatorService {
         if (base == null || exponent == null) {
             throw new InvalidCalculationException("MISSING_OPERAND", "Both 'base' and 'exponent' are required.");
         }
+        validateOperand(base);
+        validateOperand(exponent);
         if (exponent.abs().compareTo(MAX_ABS_EXPONENT) > 0) {
             throw new InvalidCalculationException(
                     "EXPONENT_OUT_OF_RANGE",
@@ -108,6 +111,7 @@ public class CalculatorService {
         if (value == null) {
             throw new InvalidCalculationException("MISSING_OPERAND", "Field 'value' is required.");
         }
+        validateOperand(value);
         if (value.compareTo(BigDecimal.ZERO) < 0) {
             throw new InvalidCalculationException(
                     "NEGATIVE_SQUARE_ROOT",
@@ -131,6 +135,10 @@ public class CalculatorService {
     public CalculationResponse percentage(BigDecimal percent, BigDecimal of) {
         if (percent == null) {
             throw new InvalidCalculationException("MISSING_OPERAND", "Field 'percent' is required.");
+        }
+        validateOperand(percent);
+        if (of != null) {
+            validateOperand(of);
         }
 
         BigDecimal normalizedPercent = normalize(percent);
@@ -184,6 +192,19 @@ public class CalculatorService {
     private void requireOperands(BigDecimal a, BigDecimal b) {
         if (a == null || b == null) {
             throw new InvalidCalculationException("MISSING_OPERAND", "Both operands 'a' and 'b' are required.");
+        }
+        validateOperand(a);
+        validateOperand(b);
+    }
+
+    private void validateOperand(BigDecimal value) {
+        long scale = value.scale();
+        long integerDigits = (long) value.precision() - scale;
+        if (Math.abs(scale) > MAX_SCALE_OR_MAGNITUDE || integerDigits > MAX_SCALE_OR_MAGNITUDE) {
+            throw new InvalidCalculationException(
+                    "OPERAND_OUT_OF_RANGE",
+                    "Operand magnitude or precision exceeds the supported limit."
+            );
         }
     }
 

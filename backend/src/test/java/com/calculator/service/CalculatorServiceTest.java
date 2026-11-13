@@ -75,6 +75,17 @@ class CalculatorServiceTest {
                     .isInstanceOf(InvalidCalculationException.class)
                     .hasMessage("Both operands 'a' and 'b' are required.");
         }
+
+        @Test
+        void rejectsExtremeScaleAndMagnitudeOperands() {
+            assertThatThrownBy(() -> calculatorService.add(new BigDecimal("1e10000000"), BigDecimal.ONE))
+                    .isInstanceOf(InvalidCalculationException.class)
+                    .hasMessage("Operand magnitude or precision exceeds the supported limit.");
+
+            assertThatThrownBy(() -> calculatorService.subtract(new BigDecimal("1e-10000000"), BigDecimal.ONE))
+                    .isInstanceOf(InvalidCalculationException.class)
+                    .hasMessage("Operand magnitude or precision exceeds the supported limit.");
+        }
     }
 
     @Nested
@@ -84,13 +95,17 @@ class CalculatorServiceTest {
         @Test
         void computesPositiveAndNegativeIntegerExponentiation() {
             CalculationResponse positive = calculatorService.power(new BigDecimal("2"), new BigDecimal("8"));
-            CalculationResponse negative = calculatorService.power(new BigDecimal("2"), new BigDecimal("-2"));
+            CalculationResponse negativeExp = calculatorService.power(new BigDecimal("2"), new BigDecimal("-2"));
+            CalculationResponse negativeBaseOdd = calculatorService.power(new BigDecimal("-2"), new BigDecimal("3"));
             CalculationResponse zeroPowerZero = calculatorService.power(BigDecimal.ZERO, BigDecimal.ZERO);
+            CalculationResponse zeroPowerFraction = calculatorService.power(BigDecimal.ZERO, new BigDecimal("0.5"));
 
             assertThat(positive.operation()).isEqualTo(OperationType.EXPONENTIATION);
             assertThat(positive.result()).isEqualByComparingTo("256");
-            assertThat(negative.result()).isEqualByComparingTo("0.25");
+            assertThat(negativeExp.result()).isEqualByComparingTo("0.25");
+            assertThat(negativeBaseOdd.result()).isEqualByComparingTo("-8");
             assertThat(zeroPowerZero.result()).isEqualByComparingTo("1");
+            assertThat(zeroPowerFraction.result()).isEqualByComparingTo("0");
         }
 
         @Test
@@ -120,6 +135,28 @@ class CalculatorServiceTest {
             assertThatThrownBy(() -> calculatorService.power(new BigDecimal("2"), new BigDecimal("10001")))
                     .isInstanceOf(InvalidCalculationException.class)
                     .hasMessage("Exponent must be between -10000 and 10000.");
+        }
+
+        @Test
+        void throwsWhenFractionalPowerOverflows() {
+            assertThatThrownBy(() -> calculatorService.power(new BigDecimal("1e200"), new BigDecimal("2.5")))
+                    .isInstanceOf(InvalidCalculationException.class)
+                    .hasMessage("Exponentiation result is outside the supported numeric range.");
+        }
+
+        @Test
+        void throwsWhenPowerSqrtOrPercentageReceiveNullInputs() {
+            assertThatThrownBy(() -> calculatorService.power(null, BigDecimal.ONE))
+                    .isInstanceOf(InvalidCalculationException.class)
+                    .hasMessage("Both 'base' and 'exponent' are required.");
+
+            assertThatThrownBy(() -> calculatorService.sqrt(null))
+                    .isInstanceOf(InvalidCalculationException.class)
+                    .hasMessage("Field 'value' is required.");
+
+            assertThatThrownBy(() -> calculatorService.percentage(null, BigDecimal.TEN))
+                    .isInstanceOf(InvalidCalculationException.class)
+                    .hasMessage("Field 'percent' is required.");
         }
 
         @Test
