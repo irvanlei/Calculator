@@ -1,4 +1,3 @@
-# Stage 1: Build the React + TypeScript frontend
 FROM node:22-alpine AS frontend-builder
 WORKDIR /app/frontend
 COPY frontend/package*.json ./
@@ -6,7 +5,6 @@ RUN npm ci
 COPY frontend/ ./
 RUN npm run build
 
-# Stage 2: Build the Spring Boot backend with bundled frontend static assets
 FROM maven:3.9.9-eclipse-temurin-21-alpine AS backend-builder
 WORKDIR /app/backend
 COPY backend/pom.xml ./
@@ -15,7 +13,6 @@ COPY backend/src ./src
 COPY --from=frontend-builder /app/frontend/dist ./src/main/resources/static
 RUN mvn -B clean package -DskipTests
 
-# Stage 3: Minimal production runtime image
 FROM eclipse-temurin:21-jre-alpine AS runtime
 WORKDIR /app
 
